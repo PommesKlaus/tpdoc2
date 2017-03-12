@@ -3,13 +3,14 @@ import request from 'supertest';
 import httpStatus from 'http-status';
 import chai, { expect } from 'chai';
 import app from '../../index';
+import User from '../models/user.model'
 
 chai.config.includeStack = true;
 
 /**
  * root level hooks
  */
-after((done) => {
+after((done) => {  
   // required because https://github.com/Automattic/mongoose/issues/1251#issuecomment-65793092
   mongoose.models = {};
   mongoose.modelSchemas = {};
@@ -18,6 +19,56 @@ after((done) => {
 });
 
 describe('## Entity APIs', () => {
+
+  /**
+   * Provide Initial Data for Testcompany
+   */ 
+
+  let testUsers = [
+    {
+    eMail: 'tpUser@localhost.com',
+    password: 'Password123',
+    firstName: 'TP',
+    lastName: 'User',
+    roles: ['x', 'tp', 'y']
+    },
+    {
+    eMail: 'adminUser@localhost.com',
+    password: 'Password123',
+    firstName: 'Admin',
+    lastName: 'User',
+    roles: ['admin', 'y']
+    },
+    {
+    eMail: 'normalUser@localhost.com',
+    password: 'Password123',
+    firstName: 'Normal',
+    lastName: 'User',
+    roles: ['x', 'y']
+    }
+  ]
+
+  before((done) => {
+    // Create Initial Data
+    User.create(testUsers, (err, data) => {
+      if (err) console.log(err)
+      testUsers = data
+      done()
+    })  
+  });
+
+  after((done) => {
+    // Delete Initial Data
+    User.remove({_id: {$in: testUsers.map((cv) => { return cv._id })}}, (err) => {
+      if (err) console.log(err)
+      done();
+    })
+  });
+
+  /**
+   * Start Test
+   */
+
   let entity = {
     name: 'Testcompany',
     shortname: 'T01',

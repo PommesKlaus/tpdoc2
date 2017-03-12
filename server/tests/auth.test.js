@@ -4,20 +4,63 @@ import jwt from 'jsonwebtoken';
 import chai, { expect } from 'chai';
 import app from '../../index';
 import config from '../../config/config';
+import User from '../models/user.model'
 
 chai.config.includeStack = true;
 
 describe('## General Auth APIs', () => {
-  let dummyUser = {
-    eMail: 'test@localhost.com',
+
+  /**
+   * Provide Initial Data for Testcompany
+   */ 
+
+  let testUsers = [
+    {
+    eMail: 'tpUser@localhost.com',
     password: 'Password123',
-    firstName: 'Test',
+    firstName: 'TP',
     lastName: 'User',
-    roles: ['admin', 'tp']
-  };
+    roles: ['x', 'tp', 'y']
+    },
+    {
+    eMail: 'adminUser@localhost.com',
+    password: 'Password123',
+    firstName: 'Admin',
+    lastName: 'User',
+    roles: ['admin', 'y']
+    },
+    {
+    eMail: 'normalUser@localhost.com',
+    password: 'Password123',
+    firstName: 'Normal',
+    lastName: 'User',
+    roles: ['x', 'y']
+    }
+  ]
+
+  before((done) => {
+    // Create Initial Data
+    User.create(testUsers, (err, data) => {
+      if (err) console.log(err)
+      testUsers = data
+      done()
+    })
+  });
+
+  after((done) => {
+    // Delete Initial Data
+    User.remove({_id: {$in: testUsers.map((cv) => { return cv._id })}}, (err) => {
+      if (err) console.log(err)
+      done();
+    })
+  });
+
+  /**
+   * Start Test
+   */
 
   const validUserCredentials = {
-    eMail: 'test@localhost.com',
+    eMail: 'tpUser@localhost.com',
     password: 'Password123'
   };
 
@@ -27,17 +70,6 @@ describe('## General Auth APIs', () => {
   };
 
   let jwtToken;
-
-  // Create Dummy Users and check authorization
-
-  describe('# Create Initial Dummy User', () => {
-    it('should be successful', (done) => {
-      request(app).post('/api/users').send(dummyUser).expect(httpStatus.OK).then((res) => {
-          dummyUser = res.body;
-          done();
-        }).catch(done);
-    });
-  });
 
   describe('# POST /api/auth/login', () => {
     it('should return Unauthorized error', (done) => {
@@ -62,63 +94,17 @@ describe('## General Auth APIs', () => {
           jwt.verify(res.body.token, config.jwtSecret, (err, decoded) => {
             expect(err).to.not.be.ok; // eslint-disable-line no-unused-expressions
             expect(decoded.eMail).to.equal(validUserCredentials.eMail);
-            expect(decoded.roles).to.include.members(['tp']);
             jwtToken = `Bearer ${res.body.token}`;
             done();
           });
-          // done()
-        })
-        .catch(done);
-    });
-  });
-
-  describe('# GET /api/auth/random-number', () => {
-    it('should fail to get random number because of missing Authorization', (done) => {
-      request(app)
-        .get('/api/auth/random-number')
-        .expect(httpStatus.UNAUTHORIZED)
-        .then((res) => {
-          expect(res.body.message).to.equal('Unauthorized');
-          done();
         })
         .catch(done);
     });
 
-    it('should fail to get random number because of wrong token', (done) => {
-      request(app)
-        .get('/api/auth/random-number')
-        .set('Authorization', 'Bearer inValidToken')
-        .expect(httpStatus.UNAUTHORIZED)
-        .then((res) => {
-          expect(res.body.message).to.equal('Unauthorized');
-          done();
-        })
-        .catch(done);
-    });
-
-    it('should get a random number', (done) => {
-      request(app)
-        .get('/api/auth/random-number')
-        .set('Authorization', jwtToken)
-        .expect(httpStatus.OK)
-        .then((res) => {
-          expect(res.body.num).to.be.a('number');
-          done();
-        })
-        .catch(done);
-    });
-  });
-
-  describe('# DELETE /api/users/', () => {
-    it('should delete dummy user (normal privileges)', (done) => {
-      request(app)
-        .delete(`/api/users/${dummyUser._id}`)
-        .expect(httpStatus.OK)
-        .then((res) => {
-          done();
-        })
-        .catch(done);
-    });
+    it('should return a token with roles including "TP" for valid test user', (done) => {
+      expect(jwt.decode(jwtToken.substr(7, jwtToken.length)).roles).to.include.members(['tp'])
+      done()
+    })
   });
 
 });
