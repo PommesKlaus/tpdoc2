@@ -2,7 +2,7 @@ import Promise from 'bluebird';
 import mongoose from 'mongoose';
 import httpStatus from 'http-status';
 import APIError from '../helpers/APIError';
-import QuestionnaireSchema from './questionnaire.model'
+import QuestionnaireSchema from './questionnaire.schema'
 
 /**
  * Entity Schema

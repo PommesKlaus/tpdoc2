@@ -20,6 +20,14 @@ const questionnaireSchema = {
   groups: Joi.array().items(groupsSchema)
 }
 
+// Definition of CondensedEntitySchema for Joi
+const condensedEntitySchema = {
+  name: Joi.string().required(),
+  shortname: Joi.string(),
+  type: Joi.string().required(),
+  country: Joi.string().length(2).required()
+}
+
 export default {
   // POST /api/users
   createUser: {
@@ -78,4 +86,32 @@ export default {
       entityId: Joi.string().hex().required()
     }
   },
+
+  // POST /api/transactions
+  createTransaction: {
+    body: {
+      name: Joi.string().required(),
+      type: Joi.string().required(),
+      begin: Joi.date(),
+      end: Joi.date(),
+      entities: Joi.array().items(condensedEntitySchema),
+      questionnaire: Joi.object().keys(questionnaireSchema).required()
+    }
+  },
+
+  // UPDATE /api/transactions/:transactionId
+  updateTransaction: {
+    body: {
+      name: Joi.string().required(),
+      type: Joi.string().required(),
+      begin: Joi.date(),
+      end: Joi.date(),
+      entities: Joi.array().items(condensedEntitySchema),
+      questionnaire: Joi.object().keys(questionnaireSchema).required()
+    },
+    params: {
+      transaction: Joi.string().hex().required()
+    }
+  },
+
 };

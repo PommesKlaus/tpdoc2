@@ -32,7 +32,7 @@ function get(req, res, next) {
  * @property {string} req.body.name - The name of entity.
  * @property {string} req.body.shortname - The shortname of entity.
  * @property {string} req.body.country - The country of entity.
- * @property {string} req.body.questionnaire - The questionnaire of entity.
+ * @property {object} req.body.questionnaire - The questionnaire of entity.
  * @returns {Entity}
  */
 function create(req, res, next) {
@@ -59,7 +59,7 @@ function create(req, res, next) {
  * @property {string} req.body.name - The name of entity.
  * @property {string} req.body.shortname - The shortname of entity.
  * @property {string} req.body.country - The country of entity.
- * @property {string} req.body.questionnaire - The questionnaire of entity.
+ * @property {object} req.body.questionnaire - The questionnaire of entity.
  * @returns {Entity}
  */
 function update(req, res, next) {
@@ -89,7 +89,7 @@ function update(req, res, next) {
 function list(req, res, next) {
   const { limit = 50, skip = 0 } = req.query;
   Entity.list({ limit, skip })
-    .then(users => res.json(users))
+    .then(entities => res.json(entities))
     .catch(e => next(e));
 }
 
