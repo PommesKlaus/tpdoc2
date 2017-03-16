@@ -94,17 +94,13 @@ describe('## General Auth APIs', () => {
           jwt.verify(res.body.token, config.jwtSecret, (err, decoded) => {
             expect(err).to.not.be.ok; // eslint-disable-line no-unused-expressions
             expect(decoded.eMail).to.equal(validUserCredentials.eMail);
+            expect(decoded.roles).to.include.members(['tp'])
             jwtToken = `Bearer ${res.body.token}`;
             done();
           });
         })
         .catch(done);
     });
-
-    it('should return a token with roles including "TP" for valid test user', (done) => {
-      expect(jwt.decode(jwtToken.substr(7, jwtToken.length)).roles).to.include.members(['tp'])
-      done()
-    })
   });
 
 });

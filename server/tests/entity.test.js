@@ -1,9 +1,12 @@
 import mongoose from 'mongoose';
 import request from 'supertest';
+import jwt from 'jsonwebtoken'
 import httpStatus from 'http-status';
 import chai, { expect } from 'chai';
 import app from '../../index';
 import User from '../models/user.model'
+import Entity from '../models/entity.model'
+import config from '../../config/config'
 
 chai.config.includeStack = true;
 
@@ -21,48 +24,45 @@ after((done) => {
 describe('## Entity APIs', () => {
 
   /**
-   * Provide Initial Data for Testcompany
+   * Provide Initial Data
    */ 
 
-  let testUsers = [
+  let expiredUser = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlTWFpbCI6Im5vcm1hbFVzZXJAbG9jYWxob3N0LmNvbSIsInJvbGVzIjpbIngiLCJ5Il0sImlhdCI6MTQ4OTQ0MjI1MywiZXhwIjoxNDg5NDg1NDUzLCJpc3MiOiJ0cGRvYyJ9.ZXhXjS9hY-22WniYwPqWqb1rb_gUNV92d2LkpYOD0m8'
+
+  let testEntities = [
     {
-    eMail: 'tpUser@localhost.com',
-    password: 'Password123',
-    firstName: 'TP',
-    lastName: 'User',
-    roles: ['x', 'tp', 'y']
-    },
-    {
-    eMail: 'adminUser@localhost.com',
-    password: 'Password123',
-    firstName: 'Admin',
-    lastName: 'User',
-    roles: ['admin', 'y']
-    },
-    {
-    eMail: 'normalUser@localhost.com',
-    password: 'Password123',
-    firstName: 'Normal',
-    lastName: 'User',
-    roles: ['x', 'y']
+      name: 'Testco 1',
+      shortname: 'T01',
+      type: 'Corporation',
+      country: 'DE',
+      questionnaire: {
+        description: '...',
+        groups: [
+          {
+            title: 'AAA',
+            description: '... ...',
+            questions: []
+          }
+        ]
+      }
     }
   ]
 
   before((done) => {
     // Create Initial Data
-    User.create(testUsers, (err, data) => {
+    Entity.create(testEntities, (err, data) => {
       if (err) console.log(err)
-      testUsers = data
-      done()
+      testEntities = data
+      done()    
     })  
   });
 
   after((done) => {
     // Delete Initial Data
-    User.remove({_id: {$in: testUsers.map((cv) => { return cv._id })}}, (err) => {
+    Entity.remove({_id: {$in: testEntities.map((cv) => { return cv._id })}}, (err) => {
       if (err) console.log(err)
       done();
-    })
+    })      
   });
 
   /**
@@ -70,106 +70,326 @@ describe('## Entity APIs', () => {
    */
 
   let entity = {
-    name: 'Testcompany',
-    shortname: 'T01',
-    type: 'Corporation',
-    country: 'DE',
-    questionnaire: { groups: [] }
+    name: 'Testco 2',
+    shortname: 'T02',
+    type: 'Partnership',
+    country: 'FR',
+    questionnaire: {
+      description: '...',
+      groups: [
+        {
+          title: 'AAA',
+          description: '... ...',
+          questions: []
+        }
+      ]
+    }
   };
 
-  describe('# POST /api/entities', () => {
-    it('should create a new entity', (done) => {
-      request(app)
-        .post('/api/entities')
-        .send(entity)
-        .expect(httpStatus.OK)
-        .then((res) => {
-          expect(res.body.name).to.equal(entity.name);
-          expect(res.body.shortname).to.equal(entity.shortname);
-          expect(res.body.type).to.equal(entity.type);
-          expect(res.body.country).to.equal(entity.country);
-          expect(res.body.questionnaire).to.be.an('object');
-          entity = res.body;
-          done();
-        })
-        .catch(done);
+  /**
+   * Test to make sure only users with proper authentication can access routes
+   */
+
+  describe('# Authentication checks', () => {
+
+    describe('- Calling entity-API without a valid JWT', () => {
+      it('GET /api/entities/ should return UNAUTHORIZED', (done) => {
+        request(app)
+          .get('/api/entities')
+          .expect(httpStatus.UNAUTHORIZED)
+          .then((res) => {
+            done();
+          })
+          .catch(done);
+      });
+
+      it('POST /api/entities/ should return UNAUTHORIZED', (done) => {
+        request(app)
+          .post('/api/entities')
+          .send(entity)
+          .expect(httpStatus.UNAUTHORIZED)
+          .then((res) => {
+            done();
+          })
+          .catch(done);
+      });
+
+      it(`GET /api/entities/${testEntities[0]._id} should return UNAUTHORIZED`, (done) => {
+        request(app)
+          .get(`/api/entities/${testEntities[0]._id}`)
+          .expect(httpStatus.UNAUTHORIZED)
+          .then((res) => {
+            done();
+          })
+          .catch(done);
+      });
+
+      it(`PUT /api/entities/${testEntities[0]._id} should return UNAUTHORIZED`, (done) => {
+        request(app)
+          .put(`/api/entities/${testEntities[0]._id}`)
+          .send(entity)
+          .expect(httpStatus.UNAUTHORIZED)
+          .then((res) => {
+            done();
+          })
+          .catch(done);
+      });
+
+      it(`DELETE /api/entities/${testEntities[0]._id} should return UNAUTHORIZED`, (done) => {
+        request(app)
+          .delete(`/api/entities/${testEntities[0]._id}`)
+          .expect(httpStatus.UNAUTHORIZED)
+          .then((res) => {
+            done();
+          })
+          .catch(done);
+      });
+      
     });
+
+    describe('- Calling entity-API with a valid JWT (standard user)', () => {
+      
+      let normalUserToken = 'Bearer '
+
+      it('GET /api/entities/ should return OK', (done) => {
+        normalUserToken += jwt.sign(
+          {
+            eMail: 'normalUser@localhost.com',
+            roles: []
+          }, 
+          config.jwtSecret,
+          {
+            issuer: config.jwtIssuer,
+            expiresIn: config.jwtExpiresIn
+          }
+        );
+        request(app)
+          .get('/api/entities')
+          .set('Authorization', normalUserToken)
+          .expect(httpStatus.OK)
+          .then((res) => {
+            // console.log(normalUserToken)
+            done();
+          })
+          .catch(done);
+      });
+
+      it('POST /api/entities/ should return UNAUTHORIZED', (done) => {
+        request(app)
+          .post('/api/entities')
+          .set('Authorization', normalUserToken)
+          .send(entity)
+          .expect(httpStatus.UNAUTHORIZED)
+          .then((res) => {
+            done();
+          })
+          .catch(done);
+      });
+
+      it(`GET /api/entities/:entityId should return UNAUTHORIZED`, (done) => {
+        request(app)
+          .get(`/api/entities/${testEntities[0]._id}`)
+          .set('Authorization', normalUserToken)
+          .expect(httpStatus.UNAUTHORIZED)
+          .then((res) => {
+            done();
+          })
+          .catch(done);
+      });
+
+      it(`PUT /api/entities/:entityId should return UNAUTHORIZED`, (done) => {
+        request(app)
+          .put(`/api/entities/${testEntities[0]._id}`)
+          .set('Authorization', normalUserToken)
+          .send(entity)
+          .expect(httpStatus.UNAUTHORIZED)
+          .then((res) => {
+            done();
+          })
+          .catch(done);
+      });
+
+      it(`DELETE /api/entities/:entityId should return UNAUTHORIZED`, (done) => {
+        request(app)
+          .delete(`/api/entities/${testEntities[0]._id}`)
+          .set('Authorization', normalUserToken)
+          .expect(httpStatus.UNAUTHORIZED)
+          .then((res) => {
+            done();
+          })
+          .catch(done);
+      });
+
+    });
+
+    describe('- Calling entity-API with a valid JWT (TP user)', () => {
+      
+      let tpUserToken = 'Bearer '
+
+      it('GET /api/entities/ should return OK', (done) => {
+        tpUserToken += jwt.sign(
+          {
+            eMail: 'normalUser@localhost.com',
+            roles: ['x', 'tp', 'y']
+          }, 
+          config.jwtSecret,
+          {
+            issuer: config.jwtIssuer,
+            expiresIn: config.jwtExpiresIn
+          }
+        );
+        request(app)
+          .get('/api/entities')
+          .set('Authorization', tpUserToken)
+          .expect(httpStatus.OK)
+          .then((res) => {
+            // console.log(normalUserToken)
+            done();
+          })
+          .catch(done);
+      });
+
+      it('POST /api/entities/ should return OK', (done) => {
+        request(app)
+          .post('/api/entities')
+          .set('Authorization', tpUserToken)
+          .send(entity)
+          .expect(httpStatus.OK)
+          .then((res) => {
+            entity = res.body
+            done();
+          })
+          .catch(done);
+      });
+
+      it(`GET /api/entities/:entityId should return OK`, (done) => {
+        request(app)
+          .get(`/api/entities/${entity._id}`)
+          .set('Authorization', tpUserToken)
+          .expect(httpStatus.OK)
+          .then((res) => {
+            done();
+          })
+          .catch(done);
+      });
+
+      it(`PUT /api/entities/:entityId should return OK`, (done) => {
+        request(app)
+          .put(`/api/entities/${entity._id}`)
+          .set('Authorization', tpUserToken)
+          .send(entity)
+          .expect(httpStatus.OK)
+          .then((res) => {
+            done();
+          })
+          .catch(done);
+      });
+
+      it(`DELETE /api/entities/:entityId should return OK`, (done) => {
+        request(app)
+          .delete(`/api/entities/${entity._id}`)
+          .set('Authorization', tpUserToken)
+          .expect(httpStatus.OK)
+          .then((res) => {
+            done();
+          })
+          .catch(done);
+      });
+
+    });
+
   });
 
-  describe('# GET /api/entities/:entityId', () => {
-    it('should get entity details', (done) => {
-      request(app)
-        .get(`/api/entities/${entity._id}`)
+
+  describe('# Content Checks', () => {
+    
+    let tpUserToken = 'Bearer '
+    tpUserToken += jwt.sign(
+      {
+        eMail: 'tpUser@localhost.com',
+        roles: ['x', 'tp', 'y']
+      },
+      config.jwtSecret,
+      {
+        issuer: config.jwtIssuer,
+        expiresIn: config.jwtExpiresIn
+      }
+    );
+    
+    describe('- GET /api/entities', () => {
+      it('should return an array with condensed presentations of entities', (done) => {
+        request(app)
+        .get(`/api/entities`)
+        .set('Authorization', tpUserToken)
         .expect(httpStatus.OK)
         .then((res) => {
-          expect(res.body.name).to.equal(entity.name);
-          expect(res.body.shortname).to.equal(entity.shortname);
-          expect(res.body.type).to.equal(entity.type);
-          expect(res.body.country).to.equal(entity.country);
-          expect(res.body.questionnaire).to.be.an('object');
+          expect(res.body).to.be.an('array')
+          expect(res.body[0]).to.have.property('name');
+          expect(res.body[0]).to.have.property('shortname');
+          expect(res.body[0]).to.have.property('country');
+          expect(res.body[0]).to.have.property('type');
+          expect(res.body[0]).not.to.have.property('questionnaire')
+          expect(res.body[0]).not.to.have.property('updatedAt')
+          expect(res.body[0]).not.to.have.property('createdAt')
           done();
         })
         .catch(done);
-    });
+      })
+    })
 
-    it('should report error with message - Not found, when entity does not exists', (done) => {
-      request(app)
-        .get('/api/entities/56c787ccc67fc16ccc1a5e92')
-        .expect(httpStatus.NOT_FOUND)
-        .then((res) => {
-          expect(res.body.message).to.equal('Not Found');
-          done();
+    describe('- POST /api/entites', () => {
+      it('should ignore submitted properties which are not part of the Entity-model and auto-create sub-property "groups" in questionnaire', (done) => {
+        request(app)
+        .post(`/api/entities`)
+        .set('Authorization', tpUserToken)
+        .send({
+          "name": "XXX",
+          "shortname": "X",
+          "type": "Corporation",
+          "country": "DE",
+          "questionnaire": {},
+          "noPropertyOfTheModel": ".."
         })
-        .catch(done);
-    });
-  });
-
-  describe('# PUT /api/entities/:entityId', () => {
-    it('should update entity details', (done) => {
-      entity.name = 'Bla Blub';
-      request(app)
-        .put(`/api/entities/${entity._id}`)
-        .send(entity)
         .expect(httpStatus.OK)
         .then((res) => {
-          expect(res.body.name).to.equal(entity.name);
-          expect(res.body.shortname).to.equal(entity.shortname);
-          expect(res.body.type).to.equal(entity.type);
-          expect(res.body.country).to.equal(entity.country);
-          expect(res.body.questionnaire).to.be.an('object');
-          done();
+          testEntities.push(res.body) // Add to array so it gets deleted after test finished
+          expect(res.body).not.to.have.property('noPropertyOfTheModel')
+          expect(res.body.questionnaire).to.have.property('groups')
+          done()
         })
-        .catch(done);
-    });
-  });
+        .catch(done)
+      })
 
-  describe('# GET /api/entities/', () => {
-    it('should get all entities', (done) => {
-      request(app)
-        .get('/api/entities')
-        .expect(httpStatus.OK)
-        .then((res) => {
-          expect(res.body).to.be.an('array');
-          done();
+      it('should return BAD REQUEST if unallowed values are submitted', (done) => {
+        request(app)
+        .post(`/api/entities`)
+        .set('Authorization', tpUserToken)
+        .send({
+          "name": "XXX",
+          "shortname": "X",
+          "type": "Corporation",
+          "country": "ABC", // may only contain 2 characters
+          "questionnaire": "XYZ" // must be an object
         })
-        .catch(done);
-    });
-  });
+        .expect(httpStatus.BAD_REQUEST)
+        .then((res) => {
+          done()
+        })
+        .catch(done)
+      })
+    })
 
-  describe('# DELETE /api/entities/', () => {
-    it('should delete entity', (done) => {
-      request(app)
-        .delete(`/api/entities/${entity._id}`)
-        .expect(httpStatus.OK)
-        .then((res) => {
-          expect(res.body.name).to.equal(entity.name);
-          expect(res.body.shortname).to.equal(entity.shortname);
-          expect(res.body.type).to.equal(entity.type);
-          expect(res.body.country).to.equal(entity.country);
-          expect(res.body.questionnaire).to.be.an('object');
-          done();
-        })
-        .catch(done);
-    });
-  });
+
+
+    /**
+     * TODO:
+     * Implement DELETE test using the currently not implemented virtual value "deletable".
+     * 
+     * Logic:
+     * a) Set an entity as "parentReportingEntity" of another entity. Then try to DELETE the first entity. Should return an error.
+     * b) Set an entity as participant in a transaction. Then try to delete the entity. Should return an error.
+     */
+
+  })  
+
 });

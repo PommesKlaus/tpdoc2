@@ -1,23 +1,30 @@
+import httpStatus from 'http-status';
 import Entity from '../models/entity.model';
+import APIError from '../helpers/APIError'
 
 /**
  * Load user and append to req.
  */
+
 function load(req, res, next, id) {
   Entity.get(id)
-    .then((entity) => {
-      req.entity = entity; // eslint-disable-line no-param-reassign
-      return next();
-    })
-    .catch(e => next(e));
+  .then((entity) => {
+    req.entity = entity; // eslint-disable-line no-param-reassign
+    return next();
+  })
+  .catch(e => next(e));
 }
 
 /**
  * Get entity
  * @returns {Entity}
  */
-function get(req, res) {
-  return res.json(req.entity);
+function get(req, res, next) {
+  if (req.user.roles.indexOf('tp') !== -1) {
+    return res.json(req.entity);
+  }
+  const err = new APIError('You are not allowed to perform this action', httpStatus.UNAUTHORIZED);
+  next(err);  
 }
 
 /**
@@ -37,9 +44,14 @@ function create(req, res, next) {
     questionnaire: req.body.questionnaire
   });
 
-  entity.save()
+  if (req.user.roles.indexOf('tp') !== -1) {
+    entity.save()
     .then(savedEntity => res.json(savedEntity))
     .catch(e => next(e));
+  } else {
+    const err = new APIError('You are not allowed to perform this action', httpStatus.UNAUTHORIZED);
+    next(err);
+  }
 }
 
 /**
@@ -57,9 +69,15 @@ function update(req, res, next) {
   entity.country = req.body.country,
   entity.questionnaire = req.body.questionnaire
 
-  entity.save()
+  if (req.user.roles.indexOf('tp') !== -1) {
+    entity.save()
     .then(savedEntity => res.json(savedEntity))
     .catch(e => next(e));
+  } else {
+    const err = new APIError('You are not allowed to perform this action', httpStatus.UNAUTHORIZED);
+    next(err);
+  }
+  
 }
 
 /**
@@ -81,9 +99,16 @@ function list(req, res, next) {
  */
 function remove(req, res, next) {
   const entity = req.entity;
-  entity.remove()
+
+  if (req.user.roles.indexOf('tp') !== -1) {
+    entity.remove()
     .then(deletedEntity => res.json(deletedEntity))
     .catch(e => next(e));
+  } else {
+    const err = new APIError('You are not allowed to perform this action', httpStatus.UNAUTHORIZED);
+    next(err);
+  }
+  
 }
 
 export default { load, get, create, update, list, remove };

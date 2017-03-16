@@ -1,26 +1,28 @@
 import express from 'express';
 import validate from 'express-validation';
+import expressJwt from 'express-jwt';
 import paramValidation from '../../config/param-validation';
 import entityCtrl from '../controllers/entity.controller';
+import config from '../../config/config';
 
 const router = express.Router(); // eslint-disable-line new-cap
 
 router.route('/')
   /** GET /api/entities - Get list of entities */
-  .get(entityCtrl.list)
+  .get(expressJwt({ secret: config.jwtSecret }), entityCtrl.list)
 
   /** POST /api/entities - Create new entity */
-  .post(validate(paramValidation.createEntity), entityCtrl.create);
+  .post(expressJwt({ secret: config.jwtSecret }), validate(paramValidation.createEntity), entityCtrl.create);
 
 router.route('/:entityId')
   /** GET /api/entities/:entityId - Get entity */
-  .get(entityCtrl.get)
+  .get(expressJwt({ secret: config.jwtSecret }), entityCtrl.get)
 
   /** PUT /api/entities/:entityId - Update entity */
-  .put(validate(paramValidation.updateEntity), entityCtrl.update)
+  .put(expressJwt({ secret: config.jwtSecret }), validate(paramValidation.updateEntity), entityCtrl.update)
 
   /** DELETE /api/entities/:entityId - Delete entity */
-  .delete(entityCtrl.remove);
+  .delete(expressJwt({ secret: config.jwtSecret }), entityCtrl.remove);
 
 /** Load entity when API with entityId route parameter is hit */
 router.param('entityId', entityCtrl.load);

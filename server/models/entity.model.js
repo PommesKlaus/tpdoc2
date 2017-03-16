@@ -7,6 +7,19 @@ import QuestionnaireSchema from './questionnaire.model'
 /**
  * Entity Schema
  */
+
+/**
+ * TODO:
+ * Implement additional property to schema "parentReportingEntity"
+ * 
+ * Logic:
+ * parentReportingEntity should be an object (optional), containing the properties
+ * "name", "shortname" and "_id" of another entity which acts as a parent entity
+ * and which must be included in the final TP-documentation to present a proper
+ * documentation of the given company. Typically, a branch/permanent establishment
+ * should not be presented on its own but togehter with the company it belongs to
+ * (branch and company are essentially the same entity).
+ */
 const EntitySchema = new mongoose.Schema({
   name: {
     type: String,
@@ -30,12 +43,21 @@ const EntitySchema = new mongoose.Schema({
   timestamps: true
 });
 
+
 /**
- * Add your
- * - pre-save hooks
- * - validations
- * - virtuals
+ * Virtuals
  */
+EntitySchema.virtual('deletable').get(function() {
+  /**
+   * TODO:
+   * Implement a check if entity can be deleted or not.
+   * 
+   * Logic: Entity can only be deleted if
+   * - it doesn't participate in a transaction (query/count transactions for this entity)
+   * - it isn't a "parentReportingCompany" in another entity
+   */
+  return false
+})
 
 /**
  * Methods
@@ -75,6 +97,12 @@ EntitySchema.statics = {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
+      .select({
+        name: 1,
+        shortname: 1,
+        country: 1,
+        type: 1
+      })
       .exec();
   }
 };
