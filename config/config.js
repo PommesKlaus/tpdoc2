@@ -41,6 +41,7 @@ const config = {
   jwtSecret: envVars.JWT_SECRET,
   jwtIssuer: envVars.JWT_ISSUER,
   jwtExpiresIn: envVars.JWT_EXPIRES_IN,
+  eMailRegExp: /^[a-zA-Z0-9_\-.]{2,}@[a-zA-Z0-9_\-.]{2,}.[a-zA-Z0-9_\-.]{2,}/,
   mongo: {
     host: envVars.MONGO_HOST,
     port: envVars.MONGO_PORT

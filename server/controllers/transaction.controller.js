@@ -1,6 +1,6 @@
 import httpStatus from 'http-status';
 import Transaction from '../models/transaction.model';
-import APIError from '../helpers/APIError'
+import APIError from '../helpers/APIError';
 
 /**
  * Load transaction and append to req.
@@ -20,11 +20,11 @@ function load(req, res, next, id) {
  * @returns {Transaction}
  */
 function get(req, res, next) {
-  // if (req.user.roles.indexOf('tp') !== -1) {
-    return res.json(req.transaction);
-  // }
-  // const err = new APIError('You are not allowed to perform this action', httpStatus.UNAUTHORIZED);
-  // next(err);  
+  if (req.user.roles.indexOf('tp') !== -1) {
+    res.json(req.transaction);
+  }
+  const err = new APIError('You are not allowed to perform this action', httpStatus.UNAUTHORIZED);
+  next(err);
 }
 
 /**
@@ -47,14 +47,14 @@ function create(req, res, next) {
     questionnaire: req.body.questionnaire
   });
 
-  // if (req.user.roles.indexOf('tp') !== -1) {
+  if (req.user.roles.indexOf('tp') !== -1) {
     transaction.save()
     .then(savedTransaction => res.json(savedTransaction))
     .catch(e => next(e));
-  // } else {
-  //   const err = new APIError('You are not allowed to perform this action', httpStatus.UNAUTHORIZED);
-  //   next(err);
-  // }
+  } else {
+    const err = new APIError('You are not allowed to perform this action', httpStatus.UNAUTHORIZED);
+    next(err);
+  }
 }
 
 /**
@@ -69,22 +69,21 @@ function create(req, res, next) {
  */
 function update(req, res, next) {
   const transaction = req.transaction;
-  transaction.name = req.body.name,
-  transaction.type = req.body.type,
-  transaction.begin = req.body.begin,
-  transaction.end = req.body.end
-  transaction.entities = req.body.entities,
-  transaction.questionnaire = req.body.questionnaire
+  transaction.name = req.body.name;
+  transaction.type = req.body.type;
+  transaction.begin = req.body.begin;
+  transaction.end = req.body.end;
+  transaction.entities = req.body.entities;
+  transaction.questionnaire = req.body.questionnaire;
 
-  // if (req.user.roles.indexOf('tp') !== -1) {
+  if (req.user.roles.indexOf('tp') !== -1) {
     transaction.save()
     .then(savedTransaction => res.json(savedTransaction))
     .catch(e => next(e));
-  // } else {
-  //   const err = new APIError('You are not allowed to perform this action', httpStatus.UNAUTHORIZED);
-  //   next(err);
-  // }
-  
+  } else {
+    const err = new APIError('You are not allowed to perform this action', httpStatus.UNAUTHORIZED);
+    next(err);
+  }
 }
 
 /**
@@ -94,10 +93,10 @@ function update(req, res, next) {
  * @returns {Transaction[]}
  */
 function list(req, res, next) {
-  let filter = {}
-  if (typeof(req.query.entities) !== 'undefined') {
+  let filter = {};
+  if (typeof (req.query.entities) !== 'undefined') {
     // query contains a filter for entities...
-    filter = {'entities._id': {$in: [].concat(req.query.entities)}}
+    filter = { 'entities._id': { $in: [].concat(req.query.entities) } };
   }
   const { limit = 50, skip = 0 } = req.query;
   Transaction.list(limit, skip, filter)
@@ -112,15 +111,14 @@ function list(req, res, next) {
 function remove(req, res, next) {
   const transaction = req.transaction;
 
-  // if (req.user.roles.indexOf('tp') !== -1) {
+  if (req.user.roles.indexOf('tp') !== -1) {
     transaction.remove()
     .then(deletedTransaction => res.json(deletedTransaction))
     .catch(e => next(e));
-  // } else {
-  //   const err = new APIError('You are not allowed to perform this action', httpStatus.UNAUTHORIZED);
-  //   next(err);
-  // }
-  
+  } else {
+    const err = new APIError('You are not allowed to perform this action', httpStatus.UNAUTHORIZED);
+    next(err);
+  }
 }
 
 export default { load, get, create, update, list, remove };

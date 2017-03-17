@@ -75,13 +75,13 @@ describe('## User APIs', () => {
 
   describe('# PUT /api/users/:userId', () => {
     it('should update user details', (done) => {
-      user.eMail = 'K@K.de';
+      user.eMail = 'ABC@DEF.com';
       request(app)
         .put(`/api/users/${user._id}`)
         .send(user)
         .expect(httpStatus.OK)
         .then((res) => {
-          expect(res.body.eMail).to.equal('K@K.de');
+          expect(res.body.eMail).to.equal('ABC@DEF.com');
           expect(res.body.password).to.be.a('string').and.to.have.lengthOf(60);
           expect(res.body.firstName).to.equal(user.firstName);
           expect(res.body.lastName).to.equal(user.lastName);
@@ -111,7 +111,7 @@ describe('## User APIs', () => {
         .delete(`/api/users/${user._id}`)
         .expect(httpStatus.OK)
         .then((res) => {
-          expect(res.body.eMail).to.equal('K@K.de');
+          expect(res.body.eMail).to.equal('ABC@DEF.com');
           expect(res.body.password).to.be.a('string').and.to.have.lengthOf(60);
           expect(res.body.firstName).to.equal(user.firstName);
           expect(res.body.lastName).to.equal(user.lastName);

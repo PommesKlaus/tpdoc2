@@ -1,24 +1,25 @@
 import Joi from 'joi';
+import config from './config';
 
 // Definition of QuestionnaireSchema for Joi
-const questionsSchema ={
+const questionsSchema = {
   title: Joi.string().required(),
   description: Joi.string(),
   inputType: Joi.string().required(),
   placeholder: Joi.string(),
-  value: Joi.string(),
-}
+  value: Joi.string()
+};
 
 const groupsSchema = {
   title: Joi.string().required(),
   description: Joi.string().required(),
   questions: Joi.array().items(questionsSchema)
-}
+};
 
 const questionnaireSchema = {
   description: Joi.string(),
   groups: Joi.array().items(groupsSchema)
-}
+};
 
 // Definition of CondensedEntitySchema for Joi
 const condensedEntitySchema = {
@@ -26,13 +27,13 @@ const condensedEntitySchema = {
   shortname: Joi.string(),
   type: Joi.string().required(),
   country: Joi.string().length(2).required()
-}
+};
 
 export default {
   // POST /api/users
   createUser: {
     body: {
-      eMail: Joi.string().regex(/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/).required(),
+      eMail: Joi.string().regex(config.eMailRegExp).required(),
       password: Joi.string().required(),
       firstName: Joi.string(),
       lastName: Joi.string(),
@@ -43,7 +44,7 @@ export default {
   // UPDATE /api/users/:userId
   updateUser: {
     body: {
-      eMail: Joi.string().regex(/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/).required(),
+      eMail: Joi.string().regex(config.eMailRegExp).required(),
       password: Joi.string().required(),
       firstName: Joi.string(),
       lastName: Joi.string(),

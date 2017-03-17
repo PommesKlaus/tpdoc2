@@ -26,4 +26,4 @@ const CondensedEntitySchema = new mongoose.Schema({
   id: false
 });
 
-export default CondensedEntitySchema
+export default CondensedEntitySchema;

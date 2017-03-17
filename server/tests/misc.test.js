@@ -9,11 +9,14 @@ chai.config.includeStack = true;
 describe('## Misc', () => {
   describe('# Check DB-connection', () => {
     it('should return "1" (connected)', (done) => {
-      let conState = mongoose.connection.readyState;
+      const conState = mongoose.connection.readyState;
       expect(conState).to.equal(1);
-      // mongoose connection ready state: 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
+      /**
+       * mongoose connection ready state:
+       * 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
+       */
       done();
-    })
+    });
   });
 
   describe('# GET /api/health-check', () => {

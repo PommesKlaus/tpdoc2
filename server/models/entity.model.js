@@ -2,7 +2,7 @@ import Promise from 'bluebird';
 import mongoose from 'mongoose';
 import httpStatus from 'http-status';
 import APIError from '../helpers/APIError';
-import QuestionnaireSchema from './questionnaire.schema'
+import QuestionnaireSchema from './questionnaire.schema';
 
 /**
  * Entity Schema
@@ -11,7 +11,7 @@ import QuestionnaireSchema from './questionnaire.schema'
 /**
  * TODO:
  * Implement additional property to schema "parentReportingEntity"
- * 
+ *
  * Logic:
  * parentReportingEntity should be an object (optional), containing the properties
  * "name", "shortname" and "_id" of another entity which acts as a parent entity
@@ -47,17 +47,18 @@ const EntitySchema = new mongoose.Schema({
 /**
  * Virtuals
  */
-EntitySchema.virtual('deletable').get(function() {
+EntitySchema.virtual('deletable').get(() => {
   /**
    * TODO:
    * Implement a check if entity can be deleted or not.
-   * 
+   *
    * Logic: Entity can only be deleted if
    * - it doesn't participate in a transaction (query/count transactions for this entity)
    * - it isn't a "parentReportingCompany" in another entity
    */
-  return false
-})
+  const a = false;
+  return a;
+});
 
 /**
  * Methods

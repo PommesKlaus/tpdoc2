@@ -2,8 +2,8 @@ import Promise from 'bluebird';
 import mongoose from 'mongoose';
 import httpStatus from 'http-status';
 import APIError from '../helpers/APIError';
-import QuestionnaireSchema from './questionnaire.schema'
-import CondensedEntitySchema from './condensedEntity.schema'
+import QuestionnaireSchema from './questionnaire.schema';
+import CondensedEntitySchema from './condensedEntity.schema';
 
 /**
  * Transaction Schema
@@ -65,7 +65,7 @@ TransactionSchema.statics = {
    * @param {number} limit - Limit number of transactions to be returned.
    * @returns {Promise<Transaction[]>}
    */
-  list( skip = 0, limit = 50, filter = {}) {
+  list(skip = 0, limit = 50, filter = {}) {
     return this.find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)

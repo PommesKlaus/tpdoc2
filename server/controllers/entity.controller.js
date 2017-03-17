@@ -1,6 +1,6 @@
 import httpStatus from 'http-status';
 import Entity from '../models/entity.model';
-import APIError from '../helpers/APIError'
+import APIError from '../helpers/APIError';
 
 /**
  * Load user and append to req.
@@ -21,10 +21,10 @@ function load(req, res, next, id) {
  */
 function get(req, res, next) {
   if (req.user.roles.indexOf('tp') !== -1) {
-    return res.json(req.entity);
+    res.json(req.entity);
   }
   const err = new APIError('You are not allowed to perform this action', httpStatus.UNAUTHORIZED);
-  next(err);  
+  next(err);
 }
 
 /**
@@ -64,10 +64,10 @@ function create(req, res, next) {
  */
 function update(req, res, next) {
   const entity = req.entity;
-  entity.name = req.body.name,
-  entity.shortname = req.body.shortname,
-  entity.country = req.body.country,
-  entity.questionnaire = req.body.questionnaire
+  entity.name = req.body.name;
+  entity.shortname = req.body.shortname;
+  entity.country = req.body.country;
+  entity.questionnaire = req.body.questionnaire;
 
   if (req.user.roles.indexOf('tp') !== -1) {
     entity.save()
@@ -77,7 +77,6 @@ function update(req, res, next) {
     const err = new APIError('You are not allowed to perform this action', httpStatus.UNAUTHORIZED);
     next(err);
   }
-  
 }
 
 /**
@@ -108,7 +107,6 @@ function remove(req, res, next) {
     const err = new APIError('You are not allowed to perform this action', httpStatus.UNAUTHORIZED);
     next(err);
   }
-  
 }
 
 export default { load, get, create, update, list, remove };

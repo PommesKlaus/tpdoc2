@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import httpStatus from 'http-status';
 import bcrypt from 'bcrypt';
 import APIError from '../helpers/APIError';
+import config from '../../config/config';
 
 const SALT_WORK_FACTOR = 10;
 
@@ -14,7 +15,7 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    match: [/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/, 'The value of path {PATH} ({VALUE}) is not a valid e-mail adress.']
+    match: [config.eMailRegExp, 'The value of path {PATH} ({VALUE}) is not a valid e-mail adress.']
   },
   password: {
     type: String,
@@ -46,29 +47,29 @@ const UserSchema = new mongoose.Schema({
  * - virtuals
  */
 
-UserSchema.pre('save', function(next) {
-  let user = this;
-  
-  // only hash the password if it has been modified (or is new)
-  if (!user.isModified('password')) return next();
+UserSchema.pre('save', function save(next) {
+  const user = this;
 
-  bcrypt.hash(user.password, SALT_WORK_FACTOR, function(err, hash) {
-    if (err) return next(err);
-    
+  // only hash the password if it has been modified (or is new)
+  if (!user.isModified('password')) next();
+
+  bcrypt.hash(user.password, SALT_WORK_FACTOR, (err, hash) => {
+    if (err) next(err);
+
     // override the cleartext password with the hashed one
     user.password = hash;
     next();
   });
-})
+});
 
 /**
  * Methods
  */
 UserSchema.method({
-  'comparePassword': function(pwd, cb) {
-    bcrypt.compare(pwd, this.password, function(err, isMatch) {
-      if (err) return cb(err);      
-      cb(null, isMatch);
+  comparePassword: function comparePassword(pwd, cb) {
+    bcrypt.compare(pwd, this.password, (err, isMatch) => {
+      if (err) return cb(err);
+      return cb(null, isMatch);
     });
   }
 });
@@ -95,7 +96,7 @@ UserSchema.statics = {
   },
 
   findByEMail(addr) {
-    return this.findOne({eMail: addr})
+    return this.findOne({ eMail: addr })
       .exec()
       .then((user) => {
         if (user) {

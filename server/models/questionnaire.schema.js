@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import APIError from '../helpers/APIError';
 
 /**
  * Questions Schema
@@ -12,22 +11,22 @@ const QuestionsSchema = new mongoose.Schema({
   description: {
     type: String,
     required: false,
-    default: ""
+    default: ''
   },
   inputType: {
     type: String,
     required: true,
-    enum: ["text", "memo"]
+    enum: ['text', 'memo']
   },
   placeholder: {
     type: String,
     required: false,
-    default: ""
+    default: ''
   },
   value: {
     type: String,
     required: false,
-    default: ""
+    default: ''
   },
 }, {
   _id: false,
@@ -68,4 +67,4 @@ const QuestionnaireSchema = new mongoose.Schema({
   id: false
 });
 
-export default QuestionnaireSchema
+export default QuestionnaireSchema;

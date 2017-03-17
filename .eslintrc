@@ -30,7 +30,8 @@
     ],
     "no-underscore-dangle": [
       0
-    ]
+    ],
+    "linebreak-style": ["error", "windows"]
   },
   "env": {
     "node": true,

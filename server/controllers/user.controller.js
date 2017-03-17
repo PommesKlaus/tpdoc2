@@ -54,11 +54,11 @@ function create(req, res, next) {
  */
 function update(req, res, next) {
   const user = req.user;
-  user.eMail = req.body.eMail
-  user.password = req.body.password
-  user.firstName = req.body.firstName
-  user.lastName = req.body.lastName
-  user.roles = req.body.roles
+  user.eMail = req.body.eMail;
+  user.password = req.body.password;
+  user.firstName = req.body.firstName;
+  user.lastName = req.body.lastName;
+  user.roles = req.body.roles;
 
   user.save()
     .then(savedUser => res.json(savedUser))

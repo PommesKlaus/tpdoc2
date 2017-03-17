@@ -1,8 +1,6 @@
 import jwt from 'jsonwebtoken';
-import httpStatus from 'http-status';
-import APIError from '../helpers/APIError';
 import config from '../../config/config';
-import User from '../models/user.model' 
+import User from '../models/user.model';
 
 /**
  * Returns jwt token if valid eMail and password is provided
@@ -19,24 +17,23 @@ function login(req, res, next) {
           {
             eMail: user.eMail,
             roles: user.roles
-          }, 
+          },
           config.jwtSecret,
           {
             issuer: config.jwtIssuer,
             expiresIn: config.jwtExpiresIn
           }
         );
-        return res.json({
+        res.json({
           token,
           eMail: user.eMail
         });
-        next(e)
+      } else {
+        next(e);
       }
-    })
+    });
   })
-  .catch((err) => {
-    return next(err);
-  })
+  .catch(err => next(err));
 }
 
 /**
