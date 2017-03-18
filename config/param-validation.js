@@ -111,7 +111,7 @@ export default {
       questionnaire: Joi.object().keys(questionnaireSchema).required()
     },
     params: {
-      transaction: Joi.string().hex().required()
+      transactionId: Joi.string().hex().required()
     }
   },
 

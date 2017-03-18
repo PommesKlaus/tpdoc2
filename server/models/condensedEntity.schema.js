@@ -4,6 +4,10 @@ import mongoose from 'mongoose';
  * Condensed Entity Schema
  */
 const CondensedEntitySchema = new mongoose.Schema({
+  entityId: {
+    type: String,
+    required: true
+  },
   name: {
     type: String,
     required: true

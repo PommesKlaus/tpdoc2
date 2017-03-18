@@ -4,6 +4,7 @@ import httpStatus from 'http-status';
 import APIError from '../helpers/APIError';
 import QuestionnaireSchema from './questionnaire.schema';
 import CondensedEntitySchema from './condensedEntity.schema';
+import CondensedUserSchema from './condensedUser.schema';
 
 /**
  * Transaction Schema
@@ -26,6 +27,7 @@ const TransactionSchema = new mongoose.Schema({
     type: Date,
     required: false
   },
+  personsOfContact: [CondensedUserSchema],
   entities: [CondensedEntitySchema],
   questionnaire: QuestionnaireSchema
 }, {
