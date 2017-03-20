@@ -331,7 +331,7 @@ describe('## Entity APIs', () => {
     });
 
     describe('- POST /api/entites', () => {
-      it('should ignore submitted properties which are not part of the Entity-model and auto-create sub-property "groups" in questionnaire', (done) => {
+      it('should ignore props which are not part of the Entity-model and auto-create sub-property "groups" in questionnaire', (done) => {
         request(app)
         .post('/api/entities')
         .set('Authorization', tpUserToken)

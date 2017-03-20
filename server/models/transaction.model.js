@@ -65,6 +65,7 @@ TransactionSchema.statics = {
    * List transactions in descending order of 'createdAt' timestamp.
    * @param {number} skip - Number of transactions to be skipped.
    * @param {number} limit - Limit number of transactions to be returned.
+   * @param {} filter - Filter Transactions by entities involved
    * @returns {Promise<Transaction[]>}
    */
   list(skip = 0, limit = 50, filter = {}) {

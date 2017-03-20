@@ -2,8 +2,7 @@ import mongoose from 'mongoose';
 import request from 'supertest';
 import jwt from 'jsonwebtoken';
 import httpStatus from 'http-status';
-import chai from 'chai';
-// import chai, { expect } from 'chai';
+import chai, { expect } from 'chai';
 import app from '../../index';
 import Transaction from '../models/transaction.model';
 import config from '../../config/config';
@@ -32,7 +31,20 @@ describe('## Transaction APIs', () => {
       type: 'Service Agreement',
       begin: new Date('2010-01-01'),
       personsOfContact: [],
-      entities: [],
+      entities: [
+        {
+          entityId: '12303dc8b326492f30e6e23a',
+          name: 'XYZ Ltd.',
+          type: 'Corporation',
+          country: 'GB'
+        },
+        {
+          entityId: 'abc03dc8b326492f30e6e23a',
+          name: 'Unlimited S.A.',
+          type: 'Corporation',
+          country: 'FR'
+        }
+      ],
       questionnaire: {
         description: '...',
         groups: [
@@ -71,7 +83,14 @@ describe('## Transaction APIs', () => {
     begin: new Date('2015-01-01'),
     end: new Date('2022-06-30'),
     personsOfContact: [],
-    entities: [],
+    entities: [
+      {
+        entityId: '12303dc8b326492f30e6e23a',
+        name: 'XYZ Ltd.',
+        type: 'Corporation',
+        country: 'GB'
+      }
+    ],
     questionnaire: {
       description: '...',
       groups: [
@@ -175,7 +194,9 @@ describe('## Transaction APIs', () => {
           .set('Authorization', normalUserToken)
           .send(transaction)
           .expect(httpStatus.OK)
-          .then(() => {
+          .then((res) => {
+            transaction = res.body;
+            testTransactions.push(transaction);
             done();
           })
           .catch(done);
@@ -194,7 +215,7 @@ describe('## Transaction APIs', () => {
 
       it('PUT /api/transactions/:transactionId should return OK', (done) => {
         request(app)
-          .put(`/api/transactions/${testTransactions[0]._id}`)
+          .put(`/api/transactions/${transaction._id}`)
           .set('Authorization', normalUserToken)
           .send(transaction)
           .expect(httpStatus.OK)
@@ -206,7 +227,7 @@ describe('## Transaction APIs', () => {
 
       it('DELETE /api/transactions/:entityId should return UNAUTHORIZED', (done) => {
         request(app)
-          .delete(`/api/transactions/${testTransactions[0]._id}`)
+          .delete(`/api/transactions/${transaction._id}`)
           .set('Authorization', normalUserToken)
           .expect(httpStatus.UNAUTHORIZED)
           .then(() => {
@@ -291,41 +312,77 @@ describe('## Transaction APIs', () => {
     });
   });
 
-  // describe('# Content Checks', () => {
-  //   let tpUserToken = 'Bearer ';
-  //   tpUserToken += jwt.sign(
-  //     {
-  //       eMail: 'tpUser@localhost.com',
-  //       roles: ['x', 'tp', 'y']
-  //     },
-  //     config.jwtSecret,
-  //     {
-  //       issuer: config.jwtIssuer,
-  //       expiresIn: config.jwtExpiresIn
-  //     }
-  //   );
-  //   // console.log(tpUserToken)
+  describe('# Content Checks', () => {
+    let tpUserToken = 'Bearer ';
+    tpUserToken += jwt.sign(
+      {
+        eMail: 'tpUser@localhost.com',
+        roles: ['x', 'tp', 'y']
+      },
+      config.jwtSecret,
+      {
+        issuer: config.jwtIssuer,
+        expiresIn: config.jwtExpiresIn
+      }
+    );
+    // console.log(tpUserToken)
 
-  //   describe('- GET /api/transactions', () => {
-  //     it('should return an array with condensed presentations of entities', (done) => {
-  //       request(app)
-  //       .get('/api/transactions')
-  //       .set('Authorization', tpUserToken)
-  //       .expect(httpStatus.OK)
-  //       .then((res) => {
-  //         expect(res.body).to.be.an('array');
-  //         expect(res.body[0]).to.have.property('name');
-  //         expect(res.body[0]).to.have.property('shortname');
-  //         expect(res.body[0]).to.have.property('country');
-  //         expect(res.body[0]).to.have.property('type');
-  //         expect(res.body[0]).not.to.have.property('questionnaire');
-  //         expect(res.body[0]).not.to.have.property('updatedAt');
-  //         expect(res.body[0]).not.to.have.property('createdAt');
-  //         done();
-  //       })
-  //       .catch(done);
-  //     });
-  //   });
+    describe('- GET /api/transactions/?entities=...', () => {
+      it('entities=[12303dc8b326492f30e6e23a, abc03dc8b326492f30e6e23a] should return an array of length 2', (done) => {
+        request(app)
+        .get('/api/transactions/?entities=12303dc8b326492f30e6e23a&entities=abc03dc8b326492f30e6e23a')
+        .set('Authorization', tpUserToken)
+        .expect(httpStatus.OK)
+        .then((res) => {
+          expect(res.body).to.be.an('array').with.lengthOf(2);
+          done();
+        })
+        .catch(done);
+      });
+
+      it('entities=[12303dc8b326492f30e6e23a] should return an array of length 2', (done) => {
+        request(app)
+        .get('/api/transactions/?entities=12303dc8b326492f30e6e23a')
+        .set('Authorization', tpUserToken)
+        .expect(httpStatus.OK)
+        .then((res) => {
+          expect(res.body).to.be.an('array').with.lengthOf(2);
+          done();
+        })
+        .catch(done);
+      });
+
+      it('entities=[abc03dc8b326492f30e6e23a] should return an array of length 1', (done) => {
+        request(app)
+        .get('/api/transactions/?entities=abc03dc8b326492f30e6e23a')
+        .set('Authorization', tpUserToken)
+        .expect(httpStatus.OK)
+        .then((res) => {
+          expect(res.body).to.be.an('array').with.lengthOf(1);
+          done();
+        })
+        .catch(done);
+      });
+    });
+
+    describe('- GET /api/transactions/', () => {
+      it('returned array elements should be condensed', (done) => {
+        request(app)
+        .get('/api/transactions')
+        .set('Authorization', tpUserToken)
+        .expect(httpStatus.OK)
+        .then((res) => {
+          expect(res.body[0]).to.have.property('name');
+          expect(res.body[0]).to.have.property('type');
+          expect(res.body[0]).to.have.property('createdAt');
+          expect(res.body[0]).not.to.have.property('questionnaire');
+          expect(res.body[0]).not.to.have.property('updatedAt');
+          done();
+        })
+        .catch(done);
+      });
+    });
+
 
   //   describe('- POST /api/entites', () => {
   //     it('should ignore submitted properties which are not part of the Entity-model and
@@ -369,5 +426,5 @@ describe('## Transaction APIs', () => {
   //       .catch(done);
   //     });
   //   });
-  // });
+  });
 });

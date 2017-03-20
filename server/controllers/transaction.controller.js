@@ -86,12 +86,12 @@ function list(req, res, next) {
   let filter = {};
   if (typeof (req.query.entities) !== 'undefined') {
     // query contains a filter for entities...
-    filter = { 'entities._id': { $in: [].concat(req.query.entities) } };
+    filter = { 'entities.entityId': { $in: [].concat(req.query.entities) } };
   }
   const { limit = 50, skip = 0 } = req.query;
 
   if (req.user.roles.indexOf('tp') !== -1) {
-    Transaction.list(limit, skip, filter)
+    Transaction.list(skip, limit, filter)
     .then(transactions => res.json(transactions))
     .catch(e => next(e));
   } else {
