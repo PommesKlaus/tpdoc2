@@ -3,6 +3,7 @@ import validate from 'express-validation';
 import expressJwt from 'express-jwt';
 import paramValidation from '../../config/param-validation';
 import transactionCtrl from '../controllers/transaction.controller';
+import uploadCtrl from '../controllers/upload.controller';
 import config from '../../config/config';
 
 const router = express.Router(); // eslint-disable-line new-cap
@@ -31,6 +32,14 @@ router.route('/:transactionId')
 
   /** DELETE /api/transactions/:transactionId - Delete transaction */
   .delete(expressJwt({ secret: config.jwtSecret }), transactionCtrl.remove);
+
+router.route('/:belongsToId/attachments')
+  /** GET /api/transactions/:transactionId/attachments - Get transaction attachments */
+  .get(
+    expressJwt({ secret: config.jwtSecret }),
+    validate(paramValidation.listUpload),
+    uploadCtrl.list
+  );
 
 /** Load transaction when API with transactionId route parameter is hit */
 router.param('transactionId', transactionCtrl.load);

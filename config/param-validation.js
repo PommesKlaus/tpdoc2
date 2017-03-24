@@ -115,4 +115,20 @@ export default {
     }
   },
 
+  // POST /api/uploads
+  createUpload: {
+    body: {
+      belongsToId: Joi.string().hex().required(),
+      files: Joi.any()
+    }
+  },
+
+  // GET /api/transactions/:transactionId/attachments
+  // GET /api/entities/:entityId/attachments
+  listUpload: {
+    params: {
+      belongsToId: Joi.string().hex().required()
+    }
+  }
+
 };

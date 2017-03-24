@@ -1,6 +1,7 @@
 import express from 'express';
 import logger from 'morgan';
 import bodyParser from 'body-parser';
+import busboyBodyParser from 'busboy-body-parser';
 import cookieParser from 'cookie-parser';
 import compress from 'compression';
 import methodOverride from 'method-override';
@@ -23,6 +24,7 @@ if (config.env === 'development') {
 // parse body params and attache them to req.body
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(busboyBodyParser({ }));
 
 app.use(cookieParser());
 app.use(compress());

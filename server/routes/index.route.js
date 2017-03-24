@@ -3,6 +3,7 @@ import userRoutes from './user.route';
 import authRoutes from './auth.route';
 import entityRoutes from './entity.route';
 import transactionRoutes from './transaction.route';
+import uploadRoutes from './upload.route';
 
 const router = express.Router(); // eslint-disable-line new-cap
 
@@ -22,5 +23,8 @@ router.use('/entities', entityRoutes);
 
 // mount transaction routes at /transactions
 router.use('/transactions', transactionRoutes);
+
+// mount upload routes at /uploads
+router.use('/uploads', uploadRoutes);
 
 export default router;

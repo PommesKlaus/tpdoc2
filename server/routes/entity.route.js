@@ -3,6 +3,7 @@ import validate from 'express-validation';
 import expressJwt from 'express-jwt';
 import paramValidation from '../../config/param-validation';
 import entityCtrl from '../controllers/entity.controller';
+import uploadCtrl from '../controllers/upload.controller';
 import config from '../../config/config';
 
 const router = express.Router(); // eslint-disable-line new-cap
@@ -31,6 +32,14 @@ router.route('/:entityId')
 
   /** DELETE /api/entities/:entityId - Delete entity */
   .delete(expressJwt({ secret: config.jwtSecret }), entityCtrl.remove);
+
+router.route('/:belongsToId/attachments')
+  /** GET /api/entities/:entityId/attachments - Get entity attachments */
+  .get(
+    expressJwt({ secret: config.jwtSecret }),
+    validate(paramValidation.listUpload),
+    uploadCtrl.list
+  );
 
 /** Load entity when API with entityId route parameter is hit */
 router.param('entityId', entityCtrl.load);
