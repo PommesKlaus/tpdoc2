@@ -83,11 +83,18 @@ function update(req, res, next) {
  * @returns {Transaction[]}
  */
 function list(req, res, next) {
-  let filter = {};
+  const filter = {};
+
   if (typeof (req.query.entities) !== 'undefined') {
     // query contains a filter for entities...
-    filter = { 'entities.entityId': { $in: [].concat(req.query.entities) } };
+    filter['entities.entityId'] = { $in: [].concat(req.query.entities) };
   }
+
+  if (typeof (req.query.type) !== 'undefined') {
+    // query contains a filter for transaction type...
+    filter['entities.type'] = req.query.type;
+  }
+
   const { limit = 50, skip = 0 } = req.query;
 
   if (req.user.roles.indexOf('tp') !== -1) {

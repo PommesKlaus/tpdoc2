@@ -47,7 +47,7 @@ TransactionSchema.statics = {
   /**
    * Get transaction
    * @param {ObjectId} id - The objectId of transaction.
-   * @returns {Promise<User, APIError>}
+   * @returns {Promise<Transaction, APIError>}
    */
   get(id) {
     return this.findById(id)
