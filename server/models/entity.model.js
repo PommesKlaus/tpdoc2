@@ -3,23 +3,12 @@ import mongoose from 'mongoose';
 import httpStatus from 'http-status';
 import APIError from '../helpers/APIError';
 import QuestionnaireSchema from './questionnaire.schema';
+import CondensedEntitySchema from './condensedEntity.schema';
 
 /**
  * Entity Schema
  */
 
-/**
- * TODO:
- * Implement additional property to schema "parentReportingEntity"
- *
- * Logic:
- * parentReportingEntity should be an object (optional), containing the properties
- * "name", "shortname" and "_id" of another entity which acts as a parent entity
- * and which must be included in the final TP-documentation to present a proper
- * documentation of the given company. Typically, a branch/permanent establishment
- * should not be presented on its own but togehter with the company it belongs to
- * (branch and company are essentially the same entity).
- */
 const EntitySchema = new mongoose.Schema({
   name: {
     type: String,
@@ -37,6 +26,10 @@ const EntitySchema = new mongoose.Schema({
     type: String,
     required: true,
     match: [/^[A-Z]{2}$/, 'The value of path {PATH} ({VALUE}) is not a valid ISO 3166 Alpha-2 code.']
+  },
+  parentReportingEntity: {
+    type: CondensedEntitySchema,
+    required: false
   },
   questionnaire: QuestionnaireSchema
 }, {

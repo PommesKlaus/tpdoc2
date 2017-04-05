@@ -70,7 +70,8 @@ export default {
       shortname: Joi.string(),
       type: Joi.string().required(),
       country: Joi.string().regex(/^[A-Z]{2}$/).required(),
-      questionnaire: Joi.object().keys(questionnaireSchema).required()
+      questionnaire: Joi.object().keys(questionnaireSchema).required(),
+      parentReportingEntity: Joi.object().keys(condensedEntitySchema)
     }
   },
 
@@ -81,7 +82,8 @@ export default {
       shortname: Joi.string(),
       type: Joi.string().required(),
       country: Joi.string().regex(/^[A-Z]{2}$/).required(),
-      questionnaire: Joi.object().keys(questionnaireSchema).required()
+      questionnaire: Joi.object().keys(questionnaireSchema).required(),
+      parentReportingEntity: Joi.object().keys(condensedEntitySchema)
     },
     params: {
       entityId: Joi.string().hex().required()
