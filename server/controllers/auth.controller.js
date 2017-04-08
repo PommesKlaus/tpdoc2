@@ -16,6 +16,7 @@ function login(req, res, next) {
         const token = jwt.sign(
           {
             eMail: user.eMail,
+			id: user._id,
             roles: user.roles
           },
           config.jwtSecret,
