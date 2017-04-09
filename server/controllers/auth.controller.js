@@ -1,6 +1,8 @@
 import jwt from 'jsonwebtoken';
 import config from '../../config/config';
 import User from '../models/user.model';
+import APIError from '../helpers/APIError';
+import httpStatus from 'http-status';
 
 /**
  * Returns jwt token if valid eMail and password is provided
@@ -10,13 +12,13 @@ import User from '../models/user.model';
  * @returns {*}
  */
 function login(req, res, next) {
-  User.findByEMail(req.body.eMail).then((user) => {
+  User.findByEMail(req.body.eMail).then((user) => {    
     user.comparePassword(req.body.password, (e, isMatch) => {
       if (isMatch && !e) {
         const token = jwt.sign(
           {
             eMail: user.eMail,
-			id: user._id,
+            id: user._id,
             roles: user.roles
           },
           config.jwtSecret,
@@ -30,7 +32,8 @@ function login(req, res, next) {
           eMail: user.eMail
         });
       } else {
-        next(e);
+        const pwdMissmatch = new APIError('Wrong Username and/or Password', httpStatus.UNAUTHORIZED);
+        next(pwdMissmatch);
       }
     });
   })
