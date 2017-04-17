@@ -80,7 +80,7 @@ function update(req, res, next) {
  * @returns {Template[]}
  */
 function list(req, res, next) {
-  const { forFilter } = req.query;
+  const forFilter = req.query;
 
   Template.list(forFilter)
   .then(templates => res.json(templates))

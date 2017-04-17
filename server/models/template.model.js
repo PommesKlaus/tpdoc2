@@ -18,7 +18,7 @@ const TemplateSchema = new mongoose.Schema({
     required: true
   },
   version: {
-    type: Date,
+    type: String,
     required: false
   },
   questionnaire: QuestionnaireSchema
@@ -59,9 +59,10 @@ TemplateSchema.statics = {
    * @returns {Promise<Templates[]>}
    */
   list(forFilter) {
-    return this.find({ for: forFilter })
+    return this.find(forFilter)
       .sort({ type: 1 })
       .select({
+        for: 1,
         type: 1,
         questionnaire: 1,
         createdAt: 1,

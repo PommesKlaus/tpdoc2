@@ -1,8 +1,9 @@
 import jwt from 'jsonwebtoken';
+import httpStatus from 'http-status';
 import config from '../../config/config';
 import User from '../models/user.model';
 import APIError from '../helpers/APIError';
-import httpStatus from 'http-status';
+
 
 /**
  * Returns jwt token if valid eMail and password is provided
@@ -12,7 +13,7 @@ import httpStatus from 'http-status';
  * @returns {*}
  */
 function login(req, res, next) {
-  User.findByEMail(req.body.eMail).then((user) => {    
+  User.findByEMail(req.body.eMail).then((user) => {
     user.comparePassword(req.body.password, (e, isMatch) => {
       if (isMatch && !e) {
         const token = jwt.sign(
